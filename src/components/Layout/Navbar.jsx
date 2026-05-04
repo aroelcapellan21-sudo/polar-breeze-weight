@@ -1,25 +1,18 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { useAuth, isAdmin } from '../../context/AuthContext.jsx'
+import { useAuth } from '../../context/AuthContext.jsx'
 import { useSheets } from '../../hooks/useSheets.js'
 import ConnectionStatus from './ConnectionStatus.jsx'
 
-const NAV_ADMIN = [
-  { to: '/dashboard',  label: 'Dashboard'    },
-  { to: '/admin',      label: '⚙️ Admin'      },
-  { to: '/',           label: 'Productos'    },
-  { to: '/despacho',   label: 'Despacho'     },
-  { to: '/sobrantes',  label: 'Sobrantes'    },
-  { to: '/vueltas',    label: 'Vueltas'      },
-  { to: '/reportes',   label: 'Reportes'     },
-  { to: '/quincena',   label: 'Quincena'     },
-  { to: '/simulacro',  label: '⚡ Simulacro'  },
-]
-
-const NAV_CHOFER = [
-  { to: '/dashboard',  label: 'Mi Panel'     },
-  { to: '/despacho',   label: 'Despacho'     },
-  { to: '/sobrantes',  label: 'Sobrantes'    },
-  { to: '/vueltas',    label: 'Vueltas'      },
+const NAV = [
+  { to: '/dashboard', label: 'Dashboard'   },
+  { to: '/admin',     label: '⚙️ Admin'     },
+  { to: '/',          label: 'Productos'   },
+  { to: '/despacho',  label: 'Despacho'    },
+  { to: '/sobrantes', label: 'Sobrantes'   },
+  { to: '/vueltas',   label: 'Vueltas'     },
+  { to: '/reportes',  label: 'Reportes'    },
+  { to: '/quincena',  label: 'Quincena'    },
+  { to: '/simulacro', label: '⚡ Simulacro' },
 ]
 
 export default function Navbar() {
@@ -27,9 +20,9 @@ export default function Navbar() {
   const { signedIn, login, logout: sheetsLogout, ready } = useSheets()
   const navigate           = useNavigate()
 
-  if (!user) return null   // No mostrar navbar en páginas públicas
+  if (!user) return null
 
-  const nav = isAdmin(user) ? NAV_ADMIN : NAV_CHOFER
+  const nav = NAV
 
   return (
     <nav className="bg-polar-800 text-white shadow-lg">
@@ -86,9 +79,7 @@ export default function Navbar() {
           <div className="flex items-center gap-1.5">
             <div className="hidden sm:block text-right">
               <p className="text-xs font-semibold text-white leading-none">{user.nombre}</p>
-              <p className="text-xs text-polar-300 leading-none mt-0.5">
-                {isAdmin(user) ? 'Admin' : `Ficha ${user.ficha}`}
-              </p>
+              <p className="text-xs text-polar-300 leading-none mt-0.5">Admin</p>
             </div>
             <button
               onClick={() => { logout(); navigate('/login') }}

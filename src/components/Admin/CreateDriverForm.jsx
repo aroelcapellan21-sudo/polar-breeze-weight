@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { createChofer } from '../../services/firestoreService.js'
-import { hashPassword } from '../../services/authService.js'
 
 export default function CreateDriverForm({ onCreated }) {
   const [form, setForm] = useState({ ficha: '', nombre: '', ruta: '', codigo: '' })
@@ -16,16 +15,13 @@ export default function CreateDriverForm({ onCreated }) {
 
     setSaving(true)
     try {
-      // Contraseña inicial = ficha (el chofer puede cambiarla al registrarse)
-      const passwordHash = await hashPassword(ficha.trim().toUpperCase())
       await createChofer({
-        ficha:        ficha.trim().toUpperCase(),
-        nombre:       nombre.trim(),
-        ruta:         form.ruta.trim(),
-        codigo:       form.codigo.trim(),
-        passwordHash,
+        ficha:  ficha.trim().toUpperCase(),
+        nombre: nombre.trim(),
+        ruta:   form.ruta.trim(),
+        codigo: form.codigo.trim(),
       })
-      toast.success(`Chofer "${nombre}" creado. Contraseña inicial = ficha`)
+      toast.success(`Chofer "${nombre}" creado`)
       setForm({ ficha: '', nombre: '', ruta: '', codigo: '' })
       onCreated?.()
     } catch (err) {
@@ -46,7 +42,6 @@ export default function CreateDriverForm({ onCreated }) {
             placeholder="CH-42"
             className="input uppercase font-mono"
           />
-          <p className="text-xs text-slate-400 mt-1">La contraseña inicial será igual a la ficha</p>
         </div>
         <div>
           <label className="label">Código de chofer</label>
@@ -75,13 +70,6 @@ export default function CreateDriverForm({ onCreated }) {
           placeholder="Zona Norte"
           className="input"
         />
-      </div>
-
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-700 space-y-1">
-        <p className="font-semibold">Al crear el perfil:</p>
-        <p>• Estado inicial: <strong>⚪ Pendiente</strong></p>
-        <p>• El chofer usa <strong>/registrarse</strong> para activar su cuenta (una sola vez)</p>
-        <p>• Contraseña temporal = su número de ficha</p>
       </div>
 
       <button type="submit" disabled={saving} className="btn-primary w-full">

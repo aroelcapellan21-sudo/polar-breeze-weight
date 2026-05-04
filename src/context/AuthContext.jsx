@@ -29,5 +29,4 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => useContext(AuthContext)
-export const isAdmin   = (user) => user?.role === 'admin'
-export const isChofer  = (user) => user?.role === 'chofer'
+export const isAdmin = (user) => user?.role === 'admin'

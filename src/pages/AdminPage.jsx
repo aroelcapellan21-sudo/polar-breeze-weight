@@ -53,9 +53,8 @@ function AdminConfig() {
       <div className="card space-y-2 text-sm text-slate-600">
         <p className="font-semibold text-slate-700">Notas de seguridad</p>
         <p>• La contraseña se almacena como hash SHA-256 en Firestore.</p>
-        <p>• Las contraseñas de choferes también se hashean antes de guardarse.</p>
         <p>• Para mayor seguridad, activa <strong>Firebase Authentication</strong> en producción.</p>
-        <p>• Configura las <strong>Firestore Security Rules</strong> para restringir acceso por rol.</p>
+        <p>• Configura las <strong>Firestore Security Rules</strong> para restringir acceso.</p>
       </div>
     </div>
   )
@@ -70,10 +69,9 @@ export default function AdminPage() {
   const period = currentPeriod()
 
   const stats = {
-    total:    choferes.length,
-    activos:  choferes.filter(c => c.status === 'activo').length,
-    pendientes: choferes.filter(c => (c.status ?? 'pendiente') === 'pendiente').length,
-    bajas:    choferes.filter(c => c.status === 'baja').length,
+    total:   choferes.length,
+    activos: choferes.filter(c => c.status !== 'baja').length,
+    bajas:   choferes.filter(c => c.status === 'baja').length,
   }
 
   return (
@@ -97,12 +95,11 @@ export default function AdminPage() {
         </div>
 
         {/* Stats rápidas */}
-        <div className="grid grid-cols-4 gap-3 mt-4">
+        <div className="grid grid-cols-3 gap-3 mt-4">
           {[
-            { label: 'Total Choferes', val: stats.total,      color: 'text-white'         },
-            { label: '✅ Activos',      val: stats.activos,    color: 'text-green-400'     },
-            { label: '⚪ Pendientes',   val: stats.pendientes, color: 'text-slate-300'     },
-            { label: '🔒 Bajas',        val: stats.bajas,      color: 'text-red-400'       },
+            { label: 'Total Choferes', val: stats.total,   color: 'text-white'     },
+            { label: '✅ Activos',      val: stats.activos, color: 'text-green-400' },
+            { label: '🔒 Bajas',        val: stats.bajas,   color: 'text-red-400'   },
           ].map(s => (
             <div key={s.label} className="bg-white/10 rounded-xl p-3 text-center">
               <p className={`text-2xl font-black tabular-nums ${s.color}`}>{s.val}</p>

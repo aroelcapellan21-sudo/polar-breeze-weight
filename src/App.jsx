@@ -3,8 +3,7 @@ import { useAuth } from './context/AuthContext.jsx'
 import Navbar from './components/Layout/Navbar.jsx'
 
 // Páginas públicas
-import LoginPage    from './pages/LoginPage.jsx'
-import RegisterPage from './pages/RegisterPage.jsx'
+import LoginPage from './pages/LoginPage.jsx'
 
 // Páginas protegidas
 import DashboardPage    from './pages/DashboardPage.jsx'
@@ -19,37 +18,14 @@ import BiweeklyPage     from './pages/BiweeklyPage.jsx'
 import SimulationPage   from './pages/SimulationPage.jsx'
 
 // ── Ruta protegida ────────────────────────────────────────────────
-function Protected({ children, adminOnly = false }) {
+function Protected({ children }) {
   const { user } = useAuth()
   if (!user) return <Navigate to="/login" replace />
-  if (adminOnly && user.role !== 'admin') return <Navigate to="/dashboard" replace />
   return children
-}
-
-// ── Chofer suspendido ─────────────────────────────────────────────
-function SuspendedBanner() {
-  const { logout } = useAuth()
-  return (
-    <div className="min-h-screen bg-red-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center space-y-4">
-        <div className="text-6xl">🔒</div>
-        <h2 className="text-2xl font-black text-red-700">Acceso Suspendido</h2>
-        <p className="text-slate-600">
-          Tu acceso ha sido suspendido. Contacta al administrador para más información.
-        </p>
-        <button onClick={logout} className="btn-primary bg-red-600 hover:bg-red-700 w-full">
-          Cerrar Sesión
-        </button>
-      </div>
-    </div>
-  )
 }
 
 // ── Wrapper de layout para páginas internas ───────────────────────
 function Layout({ children }) {
-  const { user } = useAuth()
-  // Si el chofer está de baja, mostrar banner en lugar del contenido
-  if (user?.status === 'baja') return <SuspendedBanner />
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -67,8 +43,7 @@ export default function App() {
   return (
     <Routes>
       {/* Rutas públicas */}
-      <Route path="/login"    element={<LoginPage />}    />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/login" element={<LoginPage />} />
 
       {/* Rutas protegidas con layout */}
       <Route path="/dashboard" element={
@@ -78,7 +53,7 @@ export default function App() {
         <Protected><Layout><DriverDetailPage /></Layout></Protected>
       }/>
       <Route path="/admin" element={
-        <Protected adminOnly><Layout><AdminPage /></Layout></Protected>
+        <Protected><Layout><AdminPage /></Layout></Protected>
       }/>
       <Route path="/" element={
         <Protected><Layout><ProductsPage /></Layout></Protected>

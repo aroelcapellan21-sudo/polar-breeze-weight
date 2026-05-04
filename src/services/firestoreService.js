@@ -26,18 +26,15 @@ export function subscribeChoferes(callback) {
 }
 
 // Admin: crear perfil de chofer
-// status: 'pendiente' — el chofer aún no se ha registrado
-export async function createChofer({ ficha, nombre, ruta, codigo, passwordHash }) {
+export async function createChofer({ ficha, nombre, ruta, codigo }) {
   return await setDoc(doc(db, COLS.choferes, ficha), {
     ficha, nombre, ruta, codigo,
-    passwordHash,
-    status:       'pendiente',
-    createdAt:    serverTimestamp(),
-    registradoAt: null,
-    bajadoAt:     null,
-    bajaNota:     null,
+    status:      'activo',
+    createdAt:   serverTimestamp(),
+    bajadoAt:    null,
+    bajaNota:    null,
     reactivadoAt: null,
-    source:       'polar-breeze-weight',
+    source:      'polar-breeze-weight',
   })
 }
 

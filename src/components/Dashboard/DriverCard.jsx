@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { getDriverStats } from '../../services/firestoreService.js'
 
 const STATUS_META = {
-  activo:    { icon: '✅', badge: 'bg-green-100 text-green-700 border-green-200', border: 'border-green-300' },
-  pendiente: { icon: '⚪', badge: 'bg-slate-100 text-slate-500 border-slate-200',  border: 'border-slate-200' },
-  baja:      { icon: '🔒', badge: 'bg-red-100   text-red-600   border-red-200',    border: 'border-red-200'   },
+  activo: { icon: '✅', badge: 'bg-green-100 text-green-700 border-green-200', border: 'border-green-300' },
+  baja:   { icon: '🔒', badge: 'bg-red-100   text-red-600   border-red-200',   border: 'border-red-200'   },
 }
 
 const VUELTA_META = {
@@ -20,8 +19,8 @@ export default function DriverCard({ chofer, period }) {
   const navigate = useNavigate()
   const [stats, setStats] = useState(null)
 
-  const status = chofer.status ?? 'pendiente'
-  const meta   = STATUS_META[status] ?? STATUS_META.pendiente
+  const status = chofer.status === 'baja' ? 'baja' : 'activo'
+  const meta   = STATUS_META[status]
 
   useEffect(() => {
     if (status === 'baja') return
@@ -50,22 +49,15 @@ export default function DriverCard({ chofer, period }) {
           <p className="text-xs text-slate-500 truncate">{chofer.ruta || '—'}</p>
         </div>
         <div className="text-2xl ml-2 flex-shrink-0">
-          {status === 'baja' ? '🔒' : status === 'pendiente' ? '⏳' : '🚚'}
+          {status === 'baja' ? '🔒' : '🚚'}
         </div>
       </div>
 
-      {/* Estado suspendido */}
+      {/* Estado de baja */}
       {status === 'baja' && (
         <div className="bg-red-50 border-t border-red-100 px-4 py-3 text-center">
-          <p className="text-red-600 text-xs font-semibold">Acceso suspendido</p>
+          <p className="text-red-600 text-xs font-semibold">Dado de baja</p>
           {chofer.bajaNota && <p className="text-red-400 text-xs mt-0.5 italic">{chofer.bajaNota}</p>}
-        </div>
-      )}
-
-      {/* Pendiente sin datos */}
-      {status === 'pendiente' && (
-        <div className="bg-slate-50 border-t border-slate-100 px-4 py-3 text-center">
-          <p className="text-slate-400 text-xs">Aún no se ha registrado</p>
         </div>
       )}
 
