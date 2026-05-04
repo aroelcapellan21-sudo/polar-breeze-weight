@@ -6,6 +6,7 @@ const NAV = [
   { to: '/despacho',   label: 'Despacho'   },
   { to: '/reportes',   label: 'Reportes'   },
   { to: '/quincena',   label: 'Quincena'   },
+  { to: '/simulacro',  label: '⚡ Simulacro' },
 ]
 
 export default function Navbar() {
