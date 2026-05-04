@@ -1,7 +1,7 @@
 import {
   collection, addDoc, updateDoc, deleteDoc,
   doc, query, where, orderBy, onSnapshot,
-  serverTimestamp, getDocs,
+  serverTimestamp, getDocs, setDoc,
 } from 'firebase/firestore'
 import { db } from './firebase.js'
 
@@ -14,14 +14,97 @@ export const COLS = {
 }
 
 // ─────────────────────────────────────────────────────────────────
-//  COLECCIÓN: choferes  (ya existe en Firebase — solo lectura)
+//  COLECCIÓN: choferes
 // ─────────────────────────────────────────────────────────────────
 
+// Lectura en tiempo real (para selects / hooks de chofer)
 export function subscribeChoferes(callback) {
   const q = query(collection(db, COLS.choferes), orderBy('nombre', 'asc'))
   return onSnapshot(q, snap => {
     callback(snap.docs.map(d => ({ _id: d.id, ...d.data() })))
-  }, () => callback([]))    // en caso de error de permisos devuelve vacío
+  }, () => callback([]))
+}
+
+// Admin: crear perfil de chofer
+// status: 'pendiente' — el chofer aún no se ha registrado
+export async function createChofer({ ficha, nombre, ruta, codigo, passwordHash }) {
+  return await setDoc(doc(db, COLS.choferes, ficha), {
+    ficha, nombre, ruta, codigo,
+    passwordHash,
+    status:       'pendiente',
+    createdAt:    serverTimestamp(),
+    registradoAt: null,
+    bajadoAt:     null,
+    bajaNota:     null,
+    reactivadoAt: null,
+    source:       'polar-breeze-weight',
+  })
+}
+
+// Admin: editar perfil
+export async function updateChofer(fichaId, data) {
+  await updateDoc(doc(db, COLS.choferes, fichaId), { ...data, updatedAt: serverTimestamp() })
+}
+
+// Admin: dar de baja (historial intacto)
+export async function bajaChofer(fichaId, nota = '') {
+  await updateDoc(doc(db, COLS.choferes, fichaId), {
+    status:   'baja',
+    bajadoAt: serverTimestamp(),
+    bajaNota: nota,
+  })
+}
+
+// Admin: reactivar chofer
+export async function reactivarChofer(fichaId) {
+  await updateDoc(doc(db, COLS.choferes, fichaId), {
+    status:       'activo',
+    reactivadoAt: serverTimestamp(),
+    bajadoAt:     null,
+    bajaNota:     null,
+  })
+}
+
+// Stats por chofer: agregación de despacho, vueltas, sobrantes
+export async function getDriverStats(driverId, period) {
+  const [despSnap, vueltSnap, sobSnap] = await Promise.all([
+    getDocs(query(collection(db, COLS.despacho),  where('driverId','==',driverId), where('period','==',period))),
+    getDocs(query(collection(db, COLS.vueltas),   where('driverId','==',driverId), where('period','==',period))),
+    getDocs(query(collection(db, COLS.sobrantes), where('driverId','==',driverId), where('period','==',period))),
+  ])
+
+  const despachos  = despSnap.docs.map(d  => ({ _id: d.id,  ...d.data() }))
+  const vueltas    = vueltSnap.docs.map(d => ({ _id: d.id,  ...d.data() }))
+  const sobrantes  = sobSnap.docs.map(d  => ({ _id: d.id,  ...d.data() }))
+
+  const byProduct  = {}
+  let totalBoxes = 0, totalUnits = 0, totalWeightG = 0
+
+  for (const d of despachos) {
+    totalBoxes   += d.totalBoxes   ?? 0
+    totalUnits   += d.totalUnits   ?? 0
+    totalWeightG += d.totalWeightG ?? 0
+    for (const it of (d.items ?? [])) {
+      const pid = it.productId
+      if (!byProduct[pid]) byProduct[pid] = { productId: pid, productName: it.productName ?? pid, boxes: 0, units: 0, totalG: 0 }
+      byProduct[pid].boxes  += it.boxes  ?? 0
+      byProduct[pid].units  += it.units  ?? 0
+      byProduct[pid].totalG += it.totalG ?? 0
+    }
+  }
+
+  const totalVendidoG   = vueltas.reduce((s, v) => s + (v.totalVendidoG ?? 0), 0)
+  const totalRetornadoG = sobrantes.reduce((s, r) => s + (r.totalWeightG ?? 0), 0)
+  const lastVuelta      = vueltas.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0))[0] ?? null
+
+  return {
+    driverId, period,
+    totalBoxes, totalUnits, totalWeightG,
+    totalVendidoG, totalRetornadoG,
+    byProduct: Object.values(byProduct),
+    vueltas, sobrantes,
+    lastVuelta,
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────

@@ -6,6 +6,7 @@ import {
   subscribeSobrantes,
   subscribeVueltas,
   getDespachosByDriver,
+  getDriverStats,
   saveDespacho,
   saveSobrante,
   saveVuelta,
@@ -142,4 +143,38 @@ export function useDespachosByDriver(driverId, period) {
   useEffect(() => { fetch() }, [fetch])
 
   return { despachos, loading, refetch: fetch }
+}
+
+// ── Admin: todos los choferes (raw, con status) ───────────────────
+export function useChoferesAdmin() {
+  const [choferes, setChoferes] = useState([])
+  const [loading, setLoading]   = useState(true)
+
+  useEffect(() => {
+    const unsub = subscribeChoferes(docs => {
+      setChoferes(docs)
+      setLoading(false)
+    })
+    return unsub
+  }, [])
+
+  const refetch = useCallback(() => {}, [])   // onSnapshot ya es reactivo
+
+  return { choferes, loading, refetch }
+}
+
+// ── Stats de un chofer para el dashboard ─────────────────────────
+export function useDriverStats(driverId, period) {
+  const [stats, setStats]     = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (!driverId || !period) return
+    setLoading(true)
+    getDriverStats(driverId, period)
+      .then(s => { setStats(s); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [driverId, period])
+
+  return { stats, loading }
 }
